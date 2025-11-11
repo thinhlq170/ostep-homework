@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <time.h>
+#include <sys/time.h>
 #include "hash-type.h"
 
-#define THREADS_NUM 4
+#define THREADS_NUM 10
 #define OPS_PER_THREAD 50000
 
 typedef struct {
@@ -14,8 +14,12 @@ typedef struct {
 
 
 // TODO: implement another metric such as start and end current time using gettimeofday()
-static inline double timespec_diff_sec(struct timespec start, struct timespec end) {
-    return (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+// static inline double timespec_diff_sec(struct timespec start, struct timespec end) {
+//     return (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+// }
+
+double get_time_diff(struct timeval *start, struct timeval *end) {
+    return (end->tv_sec - start->tv_sec) + (end->tv_usec - start->tv_usec) / 1000000.0;
 }
 
 void *worker(void *arg) {
@@ -25,6 +29,9 @@ void *worker(void *arg) {
 
     for (int i = 0; i < OPS_PER_THREAD; i++) {
         int key = (tid * OPS_PER_THREAD) + i;
+        // if (Hash_Lookup(table, key) == -1) {
+        //     Hash_Insert(table, key);
+        // }
         Hash_Insert(table, key);
     }
 
@@ -38,10 +45,11 @@ int main(int argc, char **argv) {
 
     pthread_t threads[THREADS_NUM];
     thread_arg_t args[THREADS_NUM];
-    struct timespec start, end;
+    // struct timespec start, end;
+    struct timeval start, end;
 
     printf("Starting %d threads, each doing %d updates...\n", THREADS_NUM, OPS_PER_THREAD);
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    gettimeofday(&start, NULL);
 
     // launch threads
     for (int i = 0; i < THREADS_NUM; i++) {
@@ -56,11 +64,11 @@ int main(int argc, char **argv) {
         pthread_join(threads[i], NULL);
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    gettimeofday(&end, NULL);
 
 
-    double elapsed = timespec_diff_sec(start, end);
-    long total_ops = THREADS_NUM * OPS_PER_THREAD;
+    double elapsed = get_time_diff(&start, &end);
+    long total_ops = THREADS_NUM * OPS_PER_THREAD; // Operate Hash_Lookup and Hash_Insert
 
 
     printf("Completed %ld operations in %.6f seconds\n", total_ops, elapsed);
