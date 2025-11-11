@@ -9,5 +9,3 @@ echo "Cleaning the targets"
 make clean
 echo "Building..."
 make
-echo "Running the test"
-./test-concurrent-table

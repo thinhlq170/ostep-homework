@@ -7,7 +7,7 @@
 #include "hash-type.h"
 
 // #define THREADS_NUM 100
-// #define OPS_PER_THREAD 50000
+// #define OPS_PER_THREAD 50000make
 #define MAX_BUFFER 50
 
 typedef struct {
@@ -46,22 +46,17 @@ void *worker(void *arg) {
 
 int main(int argc, char **argv) {
 
-    char *thread_num_buff = malloc(sizeof(char) * MAX_BUFFER);
-    char *ops_thread_buff = malloc(sizeof(char) * MAX_BUFFER);
-
-    
-    char *endPtr;
-
-    int falseConvert = 0;
-    printf("How many threads are used: ");
-    if (fgets(thread_num_buff, MAX_BUFFER, stdin) != NULL) {
-        THREADS_NUM = strtol(thread_num_buff, &endPtr, 10);
-        falseConvert = endPtr == thread_num_buff 
-                        || (*endPtr != '\0' && *endPtr != '\n')
-                        || (errno == ERANGE && (THREADS_NUM == LONG_MAX || THREADS_NUM == LONG_MIN));
-        
-        free(thread_num_buff);
+    if (argc != 3) {
+        fprintf(stderr, "%s: <number of threads> <number of ops per each thread>\n", argv[0]);
+        return 1;
     }
+
+    char *endPtr;
+    int falseConvert = 0;
+    THREADS_NUM = strtol(argv[1], &endPtr, 10);
+    falseConvert = endPtr == argv[1]
+                    || (*endPtr != '\0' && *endPtr != '\n')
+                    || (errno == ERANGE && (THREADS_NUM == LONG_MAX || THREADS_NUM == LONG_MIN));
 
     if (falseConvert) {
         fprintf(stderr, "Invalid input of number of threads are used!\n");
@@ -69,15 +64,11 @@ int main(int argc, char **argv) {
     }
 
     char *endOpsPtr;
-    printf("How many operations shall be proceeded: ");
-    if (fgets(ops_thread_buff, MAX_BUFFER, stdin) != NULL) {
-        OPS_PER_THREAD = strtol(ops_thread_buff, &endOpsPtr, 10);
-        falseConvert = endOpsPtr == ops_thread_buff 
-                        || (*endOpsPtr != '\0' && *endOpsPtr != '\n')
-                        || (errno == ERANGE && (OPS_PER_THREAD == LONG_MAX || OPS_PER_THREAD == LONG_MIN));
-        
-        free(ops_thread_buff);
-    }
+    OPS_PER_THREAD = strtol(argv[2], &endOpsPtr, 10);
+    falseConvert = endOpsPtr == argv[2]
+                    || (*endOpsPtr != '\0' && *endOpsPtr != '\n')
+                    || (errno == ERANGE && (OPS_PER_THREAD == LONG_MAX || OPS_PER_THREAD == LONG_MIN));
+    
     if (falseConvert) {
         fprintf(stderr, "Invalid input of number of operations are proceeded!\n");
         return 1;
