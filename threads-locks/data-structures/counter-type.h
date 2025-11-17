@@ -9,8 +9,8 @@ typedef struct __counter_t {
 } counter_t;
 
 extern void Counter_Init(counter_t *C);
-extern void Counter_Increase(counter_t *C);
-extern void Counter_Decrease(counter_t *C);
+extern void Counter_Increment(counter_t *C);
+extern void Counter_Decrement(counter_t *C);
 extern int Counter_Get(counter_t *C);
 
 

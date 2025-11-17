@@ -5,15 +5,22 @@
 #include <errno.h>
 #include <limits.h>
 #include "hash-type.h"
+#include "counter-type.h"
 
 // #define THREADS_NUM 100
 // #define OPS_PER_THREAD 50000make
 #define MAX_BUFFER 50
+#define THRESHOLD 500000000
 
 typedef struct {
     hash_t *table;
     int thread_id;
 } thread_arg_t;
+
+typedef struct {
+    counter_t *counter;
+    int thread_id;
+} counter_thread_arg_t;
 
 
 long THREADS_NUM = 0;
@@ -39,6 +46,22 @@ void *worker(void *arg) {
         //     Hash_Insert(table, key);
         // }
         Hash_Insert(table, key);
+    }
+
+    return NULL;
+}
+
+void *counter_worker(void *arg) {
+    counter_thread_arg_t *c_thread_t = (counter_thread_arg_t *) arg;
+    counter_t *counter = c_thread_t->counter;
+    // int tid = c_thread_t->thread_id;
+
+    for (int i = 0; i < OPS_PER_THREAD; i++) {
+        // int key = (tid * OPS_PER_THREAD) + i;
+        if (counter->value == THRESHOLD) {
+            break;
+        }
+        Counter_Increment(counter);
     }
 
     return NULL;
@@ -78,8 +101,12 @@ int main(int argc, char **argv) {
     hash_t *table = malloc(sizeof(hash_t));
     Hash_Init(table);
 
+    counter_t *counter = malloc(sizeof(counter_t));
+    Counter_Init(counter);
+
     pthread_t threads[THREADS_NUM];
-    thread_arg_t args[THREADS_NUM];
+    // thread_arg_t args[THREADS_NUM];
+    counter_thread_arg_t args[THREADS_NUM];
     // struct timespec start, end;
     struct timeval start, end;
 
@@ -88,9 +115,12 @@ int main(int argc, char **argv) {
 
     // launch threads
     for (int i = 0; i < THREADS_NUM; i++) {
-        args[i].table = table;
+        if (counter->value == THRESHOLD) {
+            break;
+        }
+        args[i].counter = counter;
         args[i].thread_id = i;
-        pthread_create(&threads[i], NULL, worker, &args[i]);
+        pthread_create(&threads[i], NULL, counter_worker, &args[i]);
     }
 
 
@@ -103,13 +133,15 @@ int main(int argc, char **argv) {
 
 
     double elapsed = get_time_diff(&start, &end);
-    long total_ops = THREADS_NUM * OPS_PER_THREAD; // Operate Hash_Lookup and Hash_Insert
+    // long total_ops = THREADS_NUM * OPS_PER_THREAD; // Operate Hash_Lookup and Hash_Insert
 
 
-    printf("Completed %ld operations in %.6f seconds\n", total_ops, elapsed);
-    printf("Throughput: %.2f ops/sec\n", total_ops / elapsed);
+    // printf("Completed %ld operations in %.6f seconds\n", total_ops, elapsed);
+    // printf("Throughput: %.2f ops/sec\n", total_ops / elapsed);
+    printf("%ld,%.6f", THREADS_NUM, elapsed);
 
     free(table);
+    free(counter);
 
     return 0;
 }
