@@ -6,11 +6,12 @@
 #include <limits.h>
 #include "hash-type.h"
 #include "counter-type.h"
+#include "approx-counter-type.h"
 
 // #define THREADS_NUM 100
 // #define OPS_PER_THREAD 50000make
 #define MAX_BUFFER 50
-#define THRESHOLD 500000000
+#define THRESHOLD 5000
 
 typedef struct {
     hash_t *table;
@@ -22,9 +23,13 @@ typedef struct {
     int thread_id;
 } counter_thread_arg_t;
 
+typedef struct {
+    approx_counter_t *approx_counter;
+    int thread_id;
+} approx_counter_arg_t;
 
-long THREADS_NUM = 0;
-long OPS_PER_THREAD = 0;
+
+long OPS_PER_THREAD;
 
 // TODO: implement another metric such as start and end current time using gettimeofday()
 // static inline double timespec_diff_sec(struct timespec start, struct timespec end) {
@@ -56,16 +61,17 @@ void *counter_worker(void *arg) {
     counter_t *counter = c_thread_t->counter;
     // int tid = c_thread_t->thread_id;
 
-    for (int i = 0; i < OPS_PER_THREAD; i++) {
-        // int key = (tid * OPS_PER_THREAD) + i;
-        if (counter->value == THRESHOLD) {
-            break;
-        }
+    if (counter->value < THRESHOLD) {
         Counter_Increment(counter);
     }
 
     return NULL;
 }
+
+// void *approx_counter_worker(void *arg) {
+//     approx_counter_arg_t *arg_t = (approx_counter_arg_t *) arg;
+
+// }
 
 int main(int argc, char **argv) {
 
@@ -76,7 +82,7 @@ int main(int argc, char **argv) {
 
     char *endPtr;
     int falseConvert = 0;
-    THREADS_NUM = strtol(argv[1], &endPtr, 10);
+    long THREADS_NUM = strtol(argv[1], &endPtr, 10);
     falseConvert = endPtr == argv[1]
                     || (*endPtr != '\0' && *endPtr != '\n')
                     || (errno == ERANGE && (THREADS_NUM == LONG_MAX || THREADS_NUM == LONG_MIN));
@@ -114,7 +120,7 @@ int main(int argc, char **argv) {
     gettimeofday(&start, NULL);
 
     // launch threads
-    for (int i = 0; i < THREADS_NUM; i++) {
+    for (int i = 0; i < THREADS_NUM && i < THRESHOLD; i++) {
         if (counter->value == THRESHOLD) {
             break;
         }
@@ -125,7 +131,7 @@ int main(int argc, char **argv) {
 
 
     // Join threads
-    for (int i = 0; i < THREADS_NUM; i++) {
+    for (int i = 0; i < THREADS_NUM && i < THRESHOLD; i++) {
         pthread_join(threads[i], NULL);
     }
 

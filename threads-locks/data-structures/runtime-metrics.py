@@ -8,7 +8,7 @@ import subprocess
 
 
 executable_path = "./test-concurrent-table"
-thread_number = 10
+thread_number = 50
 ops_number = "1"
 test_numbers = 10
 
@@ -19,7 +19,7 @@ try:
         result = subprocess.run([executable_path, str(thread_number), ops_number], capture_output=True, text=True, check=True)
         thread_output.append(thread_number)
         runtime_output.append(result.stdout.split(',')[1])
-        thread_number *= 4
+        thread_number *= 2
     
     print("Executable output:")
     print(result.stdout)

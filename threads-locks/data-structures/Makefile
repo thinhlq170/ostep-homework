@@ -7,7 +7,7 @@ objects = $(wildcard *.o)
 
 all: $(TARGET)
 
-$(TARGET): hash-type.o list-type.o counter-type.o test-concurrent-table.o
+$(TARGET): hash-type.o list-type.o counter-type.o approx-counter-type.o test-concurrent-table.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 hash-type.o: hash-type.c
@@ -17,6 +17,9 @@ list-type.o: list-type.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 counter-type.o: counter-type.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+	
+approx-counter-type.o: approx-counter-type.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(TARGET).o: $(TARGET).c
