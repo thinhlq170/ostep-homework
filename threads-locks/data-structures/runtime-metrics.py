@@ -8,21 +8,23 @@ import subprocess
 
 
 executable_path = "./test-concurrent-table"
-thread_number = 50
+thread_number = 1
 ops_number = "1"
-test_numbers = 10
+test_numbers = 4
 
 try:
     thread_output = []
     runtime_output = []
     for _ in range(test_numbers):
         result = subprocess.run([executable_path, str(thread_number), ops_number], capture_output=True, text=True, check=True)
+        print(result.stdout)
         thread_output.append(thread_number)
         runtime_output.append(result.stdout.split(',')[1])
-        thread_number *= 2
+        thread_number += 1
     
     print("Executable output:")
-    print(result.stdout)
+    print(thread_output)
+    print(runtime_output)
     
 except subprocess.CalledProcessError as e:
     print(f"Error running executable: {e}")

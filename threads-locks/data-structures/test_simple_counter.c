@@ -4,32 +4,16 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <limits.h>
-#include "hash-type.h"
+
 #include "counter-type.h"
-#include "approx-counter-type.h"
 
-// #define THREADS_NUM 100
 #define OPS_PER_THREAD 1000000
-#define MAX_BUFFER 50
-#define THRESHOLD 50000000
-
-typedef struct {
-    hash_t *table;
-    int thread_id;
-} thread_arg_t;
 
 typedef struct {
     counter_t *counter;
     int thread_id;
 } counter_thread_arg_t;
 
-typedef struct {
-    approx_counter_t *approx_counter;
-    int thread_id;
-} approx_counter_arg_t;
-
-
-// long OPS_PER_THREAD;
 
 // TODO: implement another metric such as start and end current time using gettimeofday()
 // static inline double timespec_diff_sec(struct timespec start, struct timespec end) {
@@ -40,26 +24,10 @@ double get_time_diff(struct timeval *start, struct timeval *end) {
     return (end->tv_sec - start->tv_sec) + (end->tv_usec - start->tv_usec) / 1000000.0;
 }
 
-void *worker(void *arg) {
-    thread_arg_t *arg_t = (thread_arg_t *) arg;
-    hash_t *table = arg_t->table;
-    int tid = arg_t->thread_id;
-
-    for (int i = 0; i < OPS_PER_THREAD; i++) {
-        int key = (tid * OPS_PER_THREAD) + i;
-        // if (Hash_Lookup(table, key) == -1) {
-        //     Hash_Insert(table, key);
-        // }
-        Hash_Insert(table, key);
-    }
-
-    return NULL;
-}
 
 void *counter_worker(void *arg) {
     counter_thread_arg_t *c_thread_t = (counter_thread_arg_t *) arg;
     counter_t *counter = c_thread_t->counter;
-    // int tid = c_thread_t->thread_id;
 
     for (int i = 0; i < OPS_PER_THREAD; i++) {
         Counter_Increment(counter);
@@ -68,18 +36,6 @@ void *counter_worker(void *arg) {
     return NULL;
 }
 
-void *approx_counter_worker(void *arg) {
-    approx_counter_arg_t *arg_t = (approx_counter_arg_t *) arg;
-    int thread_id = arg_t->thread_id;
-    approx_counter_t *counter = arg_t->approx_counter;
-
-    for (int i = 0; i < OPS_PER_THREAD; i++) {
-        Approx_Counter_Update(counter, thread_id, 1);
-    }
-    
-
-    return NULL;
-}
 
 int main(int argc, char **argv) {
 
@@ -112,16 +68,13 @@ int main(int argc, char **argv) {
     }
 
 
-    hash_t *table = malloc(sizeof(hash_t));
-    Hash_Init(table);
+    
 
     counter_t *counter = malloc(sizeof(counter_t));
-    // counter_thread_arg_t args[THREADS_NUM];
+    counter_thread_arg_t args[THREADS_NUM];
     Counter_Init(counter);
 
-    approx_counter_t *approx_counter = malloc(sizeof(approx_counter_t));
-    approx_counter_arg_t args[THREADS_NUM];
-    Approx_Counter_Init(approx_counter, THRESHOLD);
+    
 
     pthread_t threads[THREADS_NUM];
     // thread_arg_t args[THREADS_NUM];
@@ -135,9 +88,9 @@ int main(int argc, char **argv) {
     // launch threads
     for (int i = 0; i < THREADS_NUM; i++) {
         
-        args[i].approx_counter = approx_counter;
+        args[i].counter = counter;
         args[i].thread_id = i;
-        pthread_create(&threads[i], NULL, approx_counter_worker, &args[i]);
+        pthread_create(&threads[i], NULL, counter_worker, &args[i]);
     }
 
 
@@ -150,16 +103,12 @@ int main(int argc, char **argv) {
 
 
     double elapsed = get_time_diff(&start, &end);
-    // long total_ops = THREADS_NUM * OPS_PER_THREAD; // Operate Hash_Lookup and Hash_Insert
 
 
     // printf("Completed %ld operations in %.6f seconds\n", total_ops, elapsed);
     // printf("Throughput: %.2f ops/sec\n", total_ops / elapsed);
     printf("%ld,%.6f", THREADS_NUM, elapsed);
-
-    free(table);
     free(counter);
-    free(approx_counter);
 
     return 0;
 }

@@ -13,9 +13,9 @@ typedef struct __approx_counter_t {
     int                 threshold;                  // limit to start update
 } approx_counter_t;
 
-void init(approx_counter_t *C, int threshold);
-void update(approx_counter_t *C, int threadId, int amt);
-int get(approx_counter_t *C);
+void Approx_Counter_Init(approx_counter_t *C, int threshold);
+void Approx_Counter_Update(approx_counter_t *C, int threadId, int amt);
+int Approx_Counter_Get(approx_counter_t *C);
 
 
 #endif

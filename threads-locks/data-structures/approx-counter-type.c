@@ -1,7 +1,7 @@
 #include "approx-counter-type.h"
 
 
-void init(approx_counter_t *C, int threshold) {
+void Approx_Counter_Init(approx_counter_t *C, int threshold) {
     C->threshold = threshold;
     C->global = 0;
     pthread_mutex_init(&C->glock, NULL);
@@ -17,7 +17,7 @@ void init(approx_counter_t *C, int threshold) {
     once it has risen 'threshold', grab global lock and transfer
     local values to it
 */
-void update(approx_counter_t *C, int threadId, int amt) {
+void Approx_Counter_Update(approx_counter_t *C, int threadId, int amt) {
     int cpu = threadId % NUMCPUS;
     pthread_mutex_lock(&C->llock[cpu]);
     C->local[cpu] += amt;
@@ -34,7 +34,7 @@ void update(approx_counter_t *C, int threadId, int amt) {
 }
 
 /* get: just return the global amount (approximate) */
-int get(approx_counter_t *C) {
+int Approx_Counter_Get(approx_counter_t *C) {
     pthread_mutex_lock(&C->glock);
     int val = C->global;
     pthread_mutex_unlock(&C->glock);
