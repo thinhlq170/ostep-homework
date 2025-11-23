@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 
-#define NUMCPUS 8
+#define NUMCPUS 4
 
 typedef struct __approx_counter_t {
     int                 global;                     // global count

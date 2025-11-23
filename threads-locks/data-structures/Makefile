@@ -8,7 +8,7 @@ objects = $(wildcard *.o)
 all: $(TARGET)
 
 $(TARGET): hash-type.o list-type.o counter-type.o approx-counter-type.o test-concurrent-table.o
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ -lpthread
 
 simple_counter: counter-type.o test_simple_counter.o
 	$(CC) $(CFLAGS) $^ -o $@
@@ -34,4 +34,4 @@ $(TARGET).o: $(TARGET).c
 
 
 clean: 
-	rm -f $(TARGET) $(wildcard *.o)
+	rm -f $(TARGET) $(wildcard *.o) simple_counter
