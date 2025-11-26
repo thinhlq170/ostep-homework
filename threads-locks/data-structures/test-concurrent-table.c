@@ -9,7 +9,7 @@
 
 // #define THREADS_NUM 100
 #define OPS_PER_THREAD 1000000
-#define THRESHOLD 5000000
+#define THRESHOLD 1024
 
 typedef struct {
     approx_counter_t *approx_counter;
@@ -50,6 +50,9 @@ void *approx_counter_worker(void *arg) {
     approx_counter_t *counter = arg_t->approx_counter;
 
     for (int i = 0; i < OPS_PER_THREAD; i++) {
+        if (Approx_Counter_Get(counter) >= OPS_PER_THREAD) {
+            break;
+        }
         Approx_Counter_Update(counter, thread_id, 1);
     }
     

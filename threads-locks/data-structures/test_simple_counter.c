@@ -30,6 +30,9 @@ void *counter_worker(void *arg) {
     counter_t *counter = c_thread_t->counter;
 
     for (int i = 0; i < OPS_PER_THREAD; i++) {
+        if (Counter_Get(counter) >= OPS_PER_THREAD) {
+            break;
+        }
         Counter_Increment(counter);
     }
 

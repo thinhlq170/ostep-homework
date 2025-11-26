@@ -7,7 +7,7 @@ import subprocess
 
 
 executable_path = "./test-concurrent-table"
-thread_number = 4
+thread_number = 150
 ops_number = "1"
 
 
